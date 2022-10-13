@@ -2,7 +2,6 @@ package controller
 
 import (
 	"catching-pokemons/models"
-	"catching-pokemons/util"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -50,10 +49,10 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	parsedPokemon, err := util.ParsePokemon(apiPokemon)
-	if err != nil {
-		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("error found: %s", err.Error()))
-	}
+	/* 	parsedPokemon, err := util.ParsePokemon(apiPokemon)
+	   	if err != nil {
+	   		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("error found: %s", err.Error()))
+	   	} */
 
-	respondwithJSON(w, http.StatusOK, parsedPokemon)
+	respondwithJSON(w, http.StatusOK, apiPokemon)
 }
