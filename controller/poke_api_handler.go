@@ -4,12 +4,18 @@ import (
 	"catching-pokemons/models"
 	"catching-pokemons/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+)
+
+var (
+	ErrPokemonNotFound = errors.New("pokemon not found")
+	ErrPokeApiFailed   = errors.New("pokeapi failed")
 )
 
 func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -32,6 +38,12 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	apiPokemon, err := GetPokemonFromPokeApi(id)
+
+	if errors.Is(err, ErrPokemonNotFound) {
+		respondwithJSON(w, http.StatusNotFound, models.ErrorResponse{Error: "pokemon not found"})
+		return
+	}
+
 	if err != nil {
 		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("Error while calling pokeapi: %s", err))
 		return
@@ -51,6 +63,14 @@ func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
 	response, err := http.Get(request)
 	if err != nil {
 		return models.PokeApiPokemonResponse{}, err
+	}
+
+	if response.StatusCode == http.StatusNotFound {
+		return models.PokeApiPokemonResponse{}, ErrPokemonNotFound
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return models.PokeApiPokemonResponse{}, ErrPokeApiFailed
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
