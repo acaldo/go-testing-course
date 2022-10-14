@@ -55,3 +55,22 @@ func TestGetPokemonFromPokeApiSuccessWithMocks(t *testing.T) {
 	c.Equal(expected, pokemon)
 
 }
+
+func TestGetPokemonFromPokeApiInternalServerError(t *testing.T) {
+	c := require.New(t)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	body, err := ioutil.ReadFile("samples/poke_api_read.json")
+	c.NoError(err)
+
+	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", "1")
+
+	httpmock.RegisterResponder("GET", request, httpmock.NewStringResponder(500, string(body)))
+
+	_, err = GetPokemonFromPokeApi("1")
+	c.NotNil(err)
+	c.EqualError(ErrPokeApiFailed, err.Error())
+
+}
