@@ -74,3 +74,22 @@ func TestGetPokemonFromPokeApiInternalServerError(t *testing.T) {
 	c.EqualError(ErrPokeApiFailed, err.Error())
 
 }
+
+func TestGetPokemosFromPokeApiNotFoundError(t *testing.T) {
+
+	c := require.New(t)
+	httpmock.Activate()
+
+	defer httpmock.DeactivateAndReset()
+
+	id := "bulbasaur"
+
+	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", id)
+
+	httpmock.RegisterResponder("GET", request, httpmock.NewStringResponder(404, ""))
+
+	_, err := GetPokemonFromPokeApi(id)
+	c.NotNil(err)
+	c.EqualError(ErrPokemonNotFound, err.Error())
+
+}
